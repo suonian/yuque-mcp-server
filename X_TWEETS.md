@@ -62,13 +62,13 @@ GitHub: https://github.com/suonian/yuque-mcp-server
 • 29+ 个语雀 API 工具
 • Docker 一键部署
 • 跨平台支持（macOS/Linux/Windows）
-• 兼容 Chatbox、Claude Desktop、Cherry Studio 等
+• 完美兼容 Claude Code、Chatbox、Claude Desktop、Cherry Studio 等
 
 让 AI 助手直接管理语雀知识库和文档！
 
 🔗 https://github.com/suonian/yuque-mcp-server
 
-#MCP #ModelContextProtocol #Yuque #AI #OpenSource #Docker
+#MCP #ModelContextProtocol #Yuque #ClaudeCode #AI #OpenSource #Docker
 ```
 
 ---
