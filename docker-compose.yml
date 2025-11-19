@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  yuque-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yuque-mcp-server
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      # Token 可以通过环境变量或 HTTP Header 提供
+      # - YUQUE_TOKEN=your-token-here
+    volumes:
+      # 可选：挂载配置文件
+      # - ./yuque-config.env:/app/yuque-config.env:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
