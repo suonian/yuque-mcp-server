@@ -94,7 +94,7 @@ yuque-config.env
 **位置**: 部分文档文件
 
 **修复**: ✅ **已完成**
-- 所有文档中的 `/Users/suonian/...` 已替换为 `/path/to/yuque-mcpserver`
+- 所有文档中的 `/path/to/yuque-mcpserver 已替换为 `/path/to/yuque-mcpserver`
 - 确保文档符合 GitHub 发布标准
 
 ---
