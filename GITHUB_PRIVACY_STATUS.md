@@ -24,7 +24,7 @@
 **检查方法**: 搜索远程仓库所有文件中的真实 Token
 
 **结果**: ✅ **完全安全**
-- 远程仓库中未发现真实 Token `vBmWs9xYDxvufuedUI0h6qEvzxAkLPEnOhoigmE1`
+- 远程仓库中未发现真实 Token（检查时使用的示例 Token 已清理）
 - 所有代码文件使用占位符 `your-token-here`
 - 隐私检查报告中仅包含检查说明，无真实 Token
 
