@@ -1,0 +1,50 @@
+# Git
+.git
+.gitignore
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# 配置文件（包含敏感信息）
+yuque-config.env
+*.env
+!yuque-config.env.example
+
+# 日志文件
+*.log
+/tmp/
+
+# PID 文件
+*.pid
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+
+# 文档（可选，如果需要可以包含）
+# docs/
+# *.md
+# !README.md
+
+# 测试文件
+tests/
+*.test.py
+
+# 系统服务配置（Docker 不需要）
+com.yuque.mcp.plist
+install_service.sh
+start_server.sh
+start_server.bat
+start_server.ps1
+auto_start_server.py
+
