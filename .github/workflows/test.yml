@@ -1,0 +1,33 @@
+name: Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        pip install -r requirements.txt
+    
+    - name: Syntax check
+      run: |
+        python3 -m py_compile yuque-proxy.js
+    
+    - name: Test health endpoint (if server running)
+      run: |
+        echo "健康检查测试（需要配置 YUQUE_TOKEN）"
+        # 注意：实际测试需要配置 Token，这里仅做语法检查
+
