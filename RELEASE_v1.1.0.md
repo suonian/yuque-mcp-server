@@ -133,11 +133,11 @@ search_docs(query="美团闪购")
 
 # 2. 从搜索结果中获取完整路径
 # 搜索结果会显示：
-#   🔗 完整路径: suonian-offxc/poto7v/xchphoy1k7qofodp
-#   💡 使用方法: get_doc(namespace="suonian-offxc/poto7v", slug="xchphoy1k7qofodp")
+#   🔗 完整路径: your-username/poto7v/xchphoy1k7qofodp
+#   💡 使用方法: get_doc(namespace="your-username/poto7v", slug="xchphoy1k7qofodp")
 
 # 3. 获取完整文档（自动包含知识库信息）
-get_doc(namespace="suonian-offxc/poto7v", slug="xchphoy1k7qofodp")
+get_doc(namespace="your-username/poto7v", slug="xchphoy1k7qofodp")
 ```
 
 ---

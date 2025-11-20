@@ -178,7 +178,7 @@
 ### 1. 初始化 Git 仓库
 
 ```bash
-cd /Users/suonian/Obs/程序/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 git init
 git add .
 git commit -m "Initial commit: Yuque MCP Proxy Server"

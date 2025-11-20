@@ -102,7 +102,7 @@ git push -u origin main
 运行以下命令尝试所有方法：
 
 ```bash
-cd /Users/suonian/Obs/程序/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 
 # 方法 1: 尝试 SSH
 if ssh -T git@github.com 2>&1 | grep -q "successfully authenticated"; then

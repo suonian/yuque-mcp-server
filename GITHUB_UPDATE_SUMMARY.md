@@ -111,7 +111,7 @@ b17e313 feat: v1.1.0 - 增强文档查询和搜索功能
 ### 方式一：直接推送（推荐）
 
 ```bash
-cd /Users/suonian/mcp/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 git push -u origin main
 ```
 

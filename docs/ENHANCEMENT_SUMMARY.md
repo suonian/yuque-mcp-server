@@ -54,7 +54,7 @@
 
 ```python
 # 使用 get_doc 工具
-get_doc(namespace="suonian-offxc/my-repo", slug="my-doc")
+get_doc(namespace="your-username/my-repo", slug="my-doc")
 
 # 返回结果包含：
 # - 文档基本信息

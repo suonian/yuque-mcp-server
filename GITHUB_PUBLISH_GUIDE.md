@@ -30,7 +30,7 @@
 在项目目录中执行以下命令：
 
 ```bash
-cd /Users/suonian/Obs/程序/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 
 # 添加远程仓库（将 YOUR_USERNAME 替换为您的 GitHub 用户名）
 git remote add origin https://github.com/YOUR_USERNAME/yuque-mcpserver.git

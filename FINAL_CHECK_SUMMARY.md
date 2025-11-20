@@ -1,7 +1,7 @@
 # ✅ GitHub 发布最终检查总结
 
 **检查时间**: 2025-11-19  
-**项目位置**: `/Users/suonian/Obs/程序/yuque-mcpserver/`  
+**项目位置**: `/path/to/yuque-mcpserver  
 **状态**: ✅ **已准备好发布到 GitHub**
 
 ---
@@ -250,7 +250,7 @@ python3 docker-test.py
 ### 1. 初始化 Git 仓库
 
 ```bash
-cd /Users/suonian/Obs/程序/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 git init
 git add .
 git commit -m "Initial commit: Yuque MCP Proxy Server"

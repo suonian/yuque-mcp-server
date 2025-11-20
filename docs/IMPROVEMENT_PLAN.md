@@ -6,7 +6,7 @@
 
 ## 📋 问题总结
 
-根据 `/Users/suonian/Obs/教程/MCP服务端问题排查完全指南.md` 的分析，主要问题包括：
+根据 `/path/to/yuque-mcpserver 的分析，主要问题包括：
 
 1. **知识库定位困难** - 搜索返回缺少完整的 namespace 路径
 2. **文档内容获取受限** - 只能获取预览内容，无法获取完整 Markdown

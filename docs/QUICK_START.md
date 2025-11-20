@@ -11,7 +11,7 @@
 - ✅ 服务已启动（PID: 81990）
 - ✅ Token 已配置（从配置文件加载）
 - ✅ 健康检查正常
-- ✅ 用户: suonian-offxc
+- ✅ 用户: your-username
 
 ---
 

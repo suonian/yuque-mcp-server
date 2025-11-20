@@ -44,10 +44,10 @@
 **示例输出**：
 ```
 📄 博客-【商家干货】美团外卖商家推广全解读...
-   🔗 完整路径: suonian-offxc/my-repo/my-doc
-   📚 知识库: 我的知识库 (suonian-offxc/my-repo)
+   🔗 完整路径: your-username/my-repo/my-doc
+   📚 知识库: 我的知识库 (your-username/my-repo)
    🆔 文档ID: 228724004
-   💡 使用方法: get_doc(namespace="suonian-offxc/my-repo", slug="my-doc")
+   💡 使用方法: get_doc(namespace="your-username/my-repo", slug="my-doc")
 ```
 
 ### 3. ✅ 增强了工具描述
@@ -68,11 +68,11 @@ search_docs(query="博客")
 
 # 2. 从搜索结果中获取 namespace 和 slug
 # 搜索结果会显示：
-#   🔗 完整路径: suonian-offxc/my-repo/my-doc
-#   💡 使用方法: get_doc(namespace="suonian-offxc/my-repo", slug="my-doc")
+#   🔗 完整路径: your-username/my-repo/my-doc
+#   💡 使用方法: get_doc(namespace="your-username/my-repo", slug="my-doc")
 
 # 3. 使用 get_doc 获取完整内容
-get_doc(namespace="suonian-offxc/my-repo", slug="my-doc")
+get_doc(namespace="your-username/my-repo", slug="my-doc")
 ```
 
 ### 方式 2：使用 get_doc_by_id（会得到友好提示）

@@ -5,7 +5,7 @@
 ### 1. 检查更改
 
 ```bash
-cd /Users/suonian/mcp/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 git status
 ```
 

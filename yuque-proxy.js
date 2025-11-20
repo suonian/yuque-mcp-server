@@ -1036,7 +1036,7 @@ def handle_tools_call(data):
 
 💡 解决方案：
 1. 使用 search_docs 工具搜索文档，从搜索结果中获取：
-   - namespace（命名空间，如：suonian-offxc/repo-name）
+   - namespace（命名空间，如：your-username/repo-name）
    - slug（文档标识，如：doc-slug）
 
 2. 然后使用 get_doc 工具获取完整内容：
@@ -1044,9 +1044,9 @@ def handle_tools_call(data):
 
 📝 示例：
 如果搜索结果中显示：
-   🔗 完整路径: suonian-offxc/my-repo/my-doc
+   🔗 完整路径: your-username/my-repo/my-doc
    那么：
-   - namespace = "suonian-offxc/my-repo"
+   - namespace = "your-username/my-repo"
    - slug = "my-doc"
 
 🔍 提示：搜索结果中已包含完整的 namespace 和 slug 信息，请直接使用。

@@ -91,7 +91,7 @@ curl -H "X-Yuque-Token: your-token-here" http://localhost:3000/health
 {
   "status": "healthy",
   "message": "语雀MCP服务器运行正常",
-  "user": "suonian-offxc",
+  "user": "your-username",
   "token_source": "header"  // 或 "environment"
 }
 ```
