@@ -22,7 +22,7 @@
 
 ### 1. ✅ Token 检查
 
-**检查内容**: 搜索真实 Token `vBmWs9xYDxvufuedUI0h6qEvzxAkLPEnOhoigmE1`
+**检查内容**: 搜索真实 Token（示例：`your-token-here`）
 
 **结果**: ✅ **安全**
 - 未在已提交的代码文件中发现真实 Token
@@ -94,7 +94,7 @@ yuque-config.env
 **位置**: 部分文档文件
 
 **修复**: ✅ **已完成**
-- 所有文档中的 `/path/to/yuque-mcpserver 已替换为 `/path/to/yuque-mcpserver`
+- 所有文档中的 `/Users/suonian/...` 已替换为 `/path/to/yuque-mcpserver`
 - 确保文档符合 GitHub 发布标准
 
 ---
