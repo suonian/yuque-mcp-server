@@ -218,9 +218,7 @@ launchctl list | grep com.yuque.mcp
 - [`docs/YUQUE_API_REFERENCE.md`](docs/YUQUE_API_REFERENCE.md) - **语雀 API 接口文档**（OpenAPI 规范）
 
 ### 故障排查
-- [`docs/troubleshooting/ISSUE_ANALYSIS.md`](docs/troubleshooting/ISSUE_ANALYSIS.md) - 问题分析
-- [`docs/troubleshooting/SOLUTION_SUMMARY.md`](docs/troubleshooting/SOLUTION_SUMMARY.md) - 解决方案总结
-- [`TROUBLESHOOTING.md`](TROUBLESHOOTING.md) - 故障排查指南
+如遇到问题，请查看相关文档或提交 Issue。
 
 ## 🔒 安全提示
 
