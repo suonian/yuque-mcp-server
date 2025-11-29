@@ -22,11 +22,8 @@ def load_config(config_file_path: Optional[str] = None) -> dict[str, str]:
     if config_file_path:
         config_file = config_file_path
     else:
-        # 先在当前目录查找
+        # 只在当前目录查找
         config_file = os.path.join(os.getcwd(), 'yuque-config.env')
-        # 如果当前目录没有，再在脚本所在目录查找
-        if not os.path.exists(config_file):
-            config_file = os.path.join(os.path.dirname(__file__), 'yuque-config.env')
     
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:

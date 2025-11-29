@@ -7,12 +7,12 @@
     
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>__SCRIPT_DIR__/yuque-proxy.js</string>
+        <string>/Library/Frameworks/Python.framework/Versions/3.13/bin/python3</string>
+        <string>/Users/suonian/cursor/yuque-mcpserver/app_async.py</string>
     </array>
     
     <key>WorkingDirectory</key>
-    <string>__SCRIPT_DIR__</string>
+    <string>/Users/suonian/cursor/yuque-mcpserver</string>
     
     <key>RunAtLoad</key>
     <true/>

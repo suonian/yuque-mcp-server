@@ -1,0 +1,117 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yuque-mcp-server"
+version = "1.1.0"
+description = "Yuque MCP Server - 语雀模型上下文协议服务器"
+requires-python = ">=3.7"
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Yuque Team", email = "support@yuque.com" },
+]
+keywords = ["yuque", "mcp", "server", "model", "context", "protocol"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+dependencies = [
+    "flask>=2.3.3",
+    "requests>=2.31.0",
+    "redis>=5.0.1",
+    "fastapi>=0.95.0,<0.104.0",
+    "uvicorn>=0.24.0",
+    "httpx>=0.24.0,<0.25.0",
+    "platformdirs>=4.0.0",
+    "pyyaml>=6.0.1"
+]
+
+[tool.setuptools]
+py-modules = [
+    "app",
+    "app_async",
+    "async_yuque_client",
+    "auto_start_server",
+    "cache",
+    "config",
+    "install",
+    "stdio-wrapper",
+    "yuque_client",
+    "yuque-proxy"
+]
+
+[project.urls]
+Homepage = "https://github.com/yuque/yuque-mcpserver"
+Documentation = "https://github.com/yuque/yuque-mcpserver/wiki"
+Source = "https://github.com/yuque/yuque-mcpserver"
+Issues = "https://github.com/yuque/yuque-mcpserver/issues"
+
+[project.scripts]
+yuque-mcp = "app_async:app"
+yuque-mcp-server = "app_async:app"
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.3",
+    "black>=23.11.0",
+    "flake8>=6.1.0",
+    "mypy>=1.7.1",
+    "isort>=5.12.0",
+]
+
+[tool.pytest.ini_options]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v"
+
+[tool.black]
+line-length = 88
+target-version = ['py37', 'py38', 'py39', 'py310', 'py311', 'py312']
+include = '\.pyi?$'
+exclude = '''
+/(\.
+    |build
+    |dist
+    |venv
+    |__pycache__
+    |tests/functional/[^/]+/fixtures
+    |tests/integration/[^/]+/fixtures
+)/
+'''
+
+[tool.isort]
+profile = "black"
+line_length = 88
+skip_gitignore = true
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+no_implicit_optional = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+strict_optional = true
+warn_unused_ignores = true
+warn_redundant_casts = true
+warn_no_return = true
+
+[tool.flake8]
+max-line-length = 88
+exclude = ".git,__pycache__,build,dist,venv"
+ignore = "E203,W503"

@@ -1,4 +1,4 @@
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 
 def format_user_info(user_data: Dict[str, Any]) -> str:
