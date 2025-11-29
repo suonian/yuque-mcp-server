@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.2.1-blue.svg)](https://github.com/suonian/yuque-mcp-server/releases/tag/v1.2.1)
+[![Version](https://img.shields.io/badge/Version-1.2.2-blue.svg)](https://github.com/suonian/yuque-mcp-server/releases/tag/v1.2.2)
 
 语雀 Model Context Protocol (MCP) 代理服务器，让 AI 助手能够通过 MCP 协议与语雀平台交互。
 

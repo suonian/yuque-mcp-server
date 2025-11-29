@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "yuque-mcp-server"
-version = "1.1.0"
+version = "1.2.2"
 description = "Yuque MCP Server - 语雀模型上下文协议服务器"
 requires-python = ">=3.7"
 readme = "README.md"
