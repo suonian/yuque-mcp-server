@@ -3,7 +3,7 @@
 
 # 获取脚本所在目录
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$SCRIPT_NAME = "yuque-proxy.js"
+$SCRIPT_NAME = "app.py"
 $CONFIG_FILE = Join-Path $SCRIPT_DIR "yuque-config.env"
 $PORT = if ($env:PORT) { $env:PORT } else { 3000 }
 $PID_FILE = Join-Path $env:TEMP "yuque-proxy.pid"

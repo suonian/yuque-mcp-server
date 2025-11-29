@@ -5,7 +5,7 @@
 ## ✅ Windows 兼容性
 
 ### 完全兼容的部分
-- ✅ **主程序** (`yuque-proxy.js`) - Python + Flask，跨平台兼容
+- ✅ **主程序** (`yuque-proxy.py`) - Python + Flask，跨平台兼容
 - ✅ **自动启动包装器** (`auto_start_server.py`) - Python，跨平台兼容
 - ✅ **MCP 协议** - 标准协议，跨平台兼容
 
@@ -83,7 +83,7 @@ start_server.bat start
 #### 直接运行 Python
 
 ```cmd
-python yuque-proxy.js
+python yuque-proxy.py
 ```
 
 ---
@@ -150,7 +150,7 @@ type %TEMP%\yuque-proxy.log
 cd C:\nssm\win64
 
 # 安装服务
-nssm install YuqueMCP "C:\Python3\python.exe" "C:\path\to\yuque-mcpserver\yuque-proxy.js"
+nssm install YuqueMCP "C:\Python3\python.exe" "C:\path\to\yuque-mcpserver\yuque-proxy.py"
 
 # 设置工作目录
 nssm set YuqueMCP AppDirectory "C:\path\to\yuque-mcpserver"
@@ -197,7 +197,7 @@ $serviceName = "YuqueMCP"
 $displayName = "语雀 MCP 代理服务器"
 $description = "语雀 Model Context Protocol 代理服务器"
 $pythonPath = "C:\Python3\python.exe"
-$scriptPath = "C:\path\to\yuque-mcpserver\yuque-proxy.js"
+$scriptPath = "C:\path\to\yuque-mcpserver\yuque-proxy.py"
 $workingDir = "C:\path\to\yuque-mcpserver"
 
 # 创建服务

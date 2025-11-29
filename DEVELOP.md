@@ -4,7 +4,7 @@
 
 ### 生产环境（运行用）
 ```
-/Users/suonian/mcp/yuque-mcpserver
+/path/to/yuque-mcpserver
 ```
 - **用途**: 仅用于运行代理服务
 - **状态**: 保持稳定，不进行开发
@@ -12,7 +12,7 @@
 
 ### 开发环境
 ```
-/Users/suonian/cursor/yuque-mcpserver
+/path/to/yuque-mcpserver
 ```
 - **用途**: 所有开发工作在此进行
 - **分支**: develop（开发分支）
@@ -29,7 +29,7 @@
 
 ### 更新生产环境
 ```bash
-cd /Users/suonian/mcp/yuque-mcpserver
+cd /path/to/yuque-mcpserver
 git pull origin main
 ./start_server.sh restart
 ```

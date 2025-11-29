@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 REM 获取脚本所在目录
 set "SCRIPT_DIR=%~dp0"
 set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
-set "SCRIPT_NAME=yuque-proxy.js"
+set "SCRIPT_NAME=app.py"
 set "CONFIG_FILE=%SCRIPT_DIR%\yuque-config.env"
 if defined PORT (
     set "PORT=%PORT%"

@@ -61,42 +61,27 @@ docker rm yuque-mcp-server
 
 ## 🧪 自动功能验证
 
-项目提供了自动化测试脚本，可以验证所有功能：
-
-### 使用 Bash 脚本
+您可以使用项目中的集成测试脚本来验证功能：
 
 ```bash
 # 设置 Token
 export YUQUE_TOKEN=your-token-here
 
-# 运行测试
-./docker-test.sh
-```
-
-### 使用 Python 脚本
-
-```bash
-# 设置 Token
-export YUQUE_TOKEN=your-token-here
-
-# 运行测试
-python3 docker-test.py
+# 运行集成测试
+python3 test_api_integration.py
 ```
 
 ### 测试内容
 
-测试脚本会自动验证：
+集成测试会验证：
 
 1. ✅ 健康检查端点
-2. ✅ 测试端点
-3. ✅ MCP 初始化
-4. ✅ 获取工具列表
-5. ✅ 获取用户信息
-6. ✅ 列出知识库
-7. ✅ Ping 测试
-8. ✅ CORS 支持
-9. ✅ 错误处理（缺少 Token）
-10. ✅ 错误处理（无效方法）
+2. ✅ 用户信息获取
+3. ✅ 知识库列表
+4. ✅ 文档列表
+5. ✅ 文档内容获取
+6. ✅ 搜索功能
+7. ✅ 团队管理功能
 
 ---
 
