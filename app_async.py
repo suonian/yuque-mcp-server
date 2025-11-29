@@ -30,7 +30,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Yuque MCP Server",
     description="语雀 MCP 服务器，支持 MCP 协议和语雀 API 调用",
-    version="2.0.0"
+    version="1.2.1"
 )
 
 
@@ -146,7 +146,7 @@ async def handle_initialize(data: Dict[str, Any]):
             },
             "serverInfo": {
                 "name": "yuque-mcp-server",
-                "version": "2.0.0"
+                "version": "1.2.1"
             }
         }
     }
@@ -1076,7 +1076,7 @@ async def test_endpoint():
     """测试端点"""
     return {
         'server': 'yuque-mcp-server',
-        'version': '2.0.0',
+        'version': '1.2.1',
         'status': 'running',
         'mode': 'async',
         'cache_stats': cache_manager.get_stats()

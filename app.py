@@ -154,7 +154,7 @@ def handle_initialize(data):
             },
             "serverInfo": {
                 "name": "yuque-mcp-server",
-                "version": "2.0.0"
+                "version": "1.2.1"
             }
         }
     }
@@ -1091,7 +1091,7 @@ def test_endpoint():
     """测试端点"""
     return jsonify({
         'server': 'yuque-mcp-server',
-        'version': '2.0.0',
+        'version': '1.2.1',
         'status': 'running'
     })
 
