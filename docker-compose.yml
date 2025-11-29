@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   yuque-mcp:
     build:
@@ -11,8 +9,8 @@ services:
     environment:
       - PORT=3000
       # Token 可以通过环境变量或 HTTP Header 提供
-      # - YUQUE_TOKEN=your-token-here
-    volumes:
+      - YUQUE_TOKEN=${YUQUE_TOKEN:-vBmWs9xYDxvufuedUI0h6qEvzxAkLPEnOhoigmE1}
+    # volumes:
       # 可选：挂载配置文件
       # - ./yuque-config.env:/app/yuque-config.env:ro
     restart: unless-stopped
@@ -22,4 +20,3 @@ services:
       timeout: 10s
       retries: 3
       start_period: 5s
-

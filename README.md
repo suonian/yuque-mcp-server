@@ -2,7 +2,7 @@
 
 [![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)](https://www.python.org/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.2.2-blue.svg)](https://github.com/suonian/yuque-mcp-server/releases/tag/v1.2.2)
+[![Version](https://img.shields.io/badge/Version-1.2.3-blue.svg)](https://github.com/suonian/yuque-mcp-server/releases/tag/v1.2.3)
 
 语雀 Model Context Protocol (MCP) 代理服务器，让 AI 助手能够通过 MCP 协议与语雀平台交互。
 
@@ -303,6 +303,32 @@ launchctl list | grep com.yuque.mcp
 ```
 
 ## 📋 最新变更
+
+### Version 1.2.3（2025-11-29）
+
+#### ✨ 新增功能
+
+- **项目优化和清理**
+  - 删除了冗余文件，优化项目结构
+  - 完善了 .gitignore 配置，符合 GitHub 规范
+
+#### 🔧 改进
+
+- **Docker 部署优化**
+  - 更新 Dockerfile 使用 Python 3.10 和异步服务
+  - 使用 uvicorn 启动，提升性能
+  - 完善了容器健康检查
+
+- **代码质量提升**
+  - 修复了所有代码问题
+  - 优化了错误处理
+
+#### 🐛 修复
+
+- 修复了 Docker 构建中的依赖兼容性问题
+- 修复了所有已知的 bug
+
+[查看完整更新日志](./CHANGELOG.md)
 
 ### Version 1.2.1（2025-11-29）
 

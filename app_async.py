@@ -10,6 +10,7 @@ import os
 import logging
 import json
 import time
+import httpx
 from typing import Dict, Any
 
 from config import CONFIG, MCP_ERROR_CODES, DEFAULT_CORS_ORIGIN, PORT
@@ -30,7 +31,7 @@ logger = logging.getLogger(__name__)
 app = FastAPI(
     title="Yuque MCP Server",
     description="语雀 MCP 服务器，支持 MCP 协议和语雀 API 调用",
-    version="1.2.1"
+    version="1.2.3"
 )
 
 
@@ -146,7 +147,7 @@ async def handle_initialize(data: Dict[str, Any]):
             },
             "serverInfo": {
                 "name": "yuque-mcp-server",
-                "version": "1.2.1"
+                "version": "1.2.3"
             }
         }
     }
@@ -959,7 +960,7 @@ async def handle_tools_call(data: Dict[str, Any], request: Request):
                     "error": {"code": -32601, "message": f"未知工具: {tool_name}"}
                 }
     
-    except httpx.HTTPError as e:
+    except httpx.HTTPStatusError as e:
         status_code = e.response.status_code
         
         # 根据状态码确定错误类型和解决建议
@@ -1021,11 +1022,10 @@ async def handle_tools_call(data: Dict[str, Any], request: Request):
 
 
 @app.get("/ping")
-async def handle_ping(data: Dict[str, Any]):
+async def handle_ping():
     """处理 ping 请求"""
     return {
         "jsonrpc": "2.0",
-        "id": data.get("id"),
         "result": {}
     }
 
@@ -1076,7 +1076,7 @@ async def test_endpoint():
     """测试端点"""
     return {
         'server': 'yuque-mcp-server',
-        'version': '1.2.1',
+        'version': '1.2.3',
         'status': 'running',
         'mode': 'async',
         'cache_stats': cache_manager.get_stats()

@@ -7,6 +7,43 @@
 
 ---
 
+## [1.2.3] - 2025-11-29
+
+### ✨ 新增功能
+
+- **项目优化和清理**
+  - 删除了冗余文件（yuque-proxy.py, update_repo.py等）
+  - 优化了项目结构，符合 GitHub 发布规范
+  - 完善了 .gitignore 配置
+
+### 🔧 改进
+
+- **Docker 部署优化**
+  - 更新 Dockerfile 使用 Python 3.10 和 app_async.py
+  - 修复 docker-compose.yml 配置
+  - 使用 uvicorn 启动异步服务，提升性能
+  - 完善了容器健康检查
+
+- **代码质量提升**
+  - 修复了 app_async.py 中缺少的 httpx 导入
+  - 修复了错误处理中的异常类型
+  - 优化了代码结构和注释
+
+- **文档更新**
+  - 更新了所有版本号到 1.2.3
+  - 完善了部署文档
+
+### 🐛 修复
+
+- 修复了 Docker 构建中的依赖兼容性问题
+- 修复了 app_async.py 中 handle_ping 函数的参数问题
+- 修复了 docker-compose.yml 中的 volumes 配置错误
+
+### 📦 依赖更新
+
+- 更新 Docker 基础镜像到 Python 3.10
+- 确保所有依赖版本兼容
+
 ## [1.2.2] - 2025-11-29
 
 ### ✨ 新增功能
