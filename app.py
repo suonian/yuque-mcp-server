@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify, Response
-import requests
 import os
 import logging
 import json
 import time
 from typing import Dict, Any
+
+from config import CONFIG, MCP_ERROR_CODES, DEFAULT_CORS_ORIGIN, PORT
+from yuque_client import YuqueMCPClient
+from utils.formatters import *
 
 app = Flask(__name__)
 
@@ -15,59 +18,13 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# 语雀 API 配置
-YUQUE_BASE_URL = "https://www.yuque.com/api/v2"
-
-# MCP 协议配置
-MCP_PROTOCOL_VERSION = "2024-11-05"
-DEFAULT_CORS_ORIGIN = "*"
-
-# MCP 标准错误码扩展
-MCP_ERROR_CODES = {
-    # JSON-RPC 2.0 标准错误码
-    -32700: "Parse error",              # JSON 解析失败
-    -32600: "Invalid Request",          # 请求格式错误
-    -32601: "Method not found",         # 方法不存在
-    -32602: "Invalid params",           # 参数错误
-    -32603: "Internal error",           # 内部错误
-    
-    # 自定义扩展错误码（-32000 到 -32099）
-    -32000: "Tool execution failed",    # 工具执行失败（通用）
-    -32001: "Authentication failed",    # 认证失败
-    -32002: "Permission denied",        # 权限不足
-    -32003: "Resource not found",       # 资源不存在
-    -32004: "Preview only",             # 仅预览权限
-    -32005: "Rate limit exceeded",       # 限流
-    -32006: "Upstream service error",   # 上游服务错误
-    -32007: "Content truncated",         # 内容被截断
-    -32008: "Invalid namespace",        # 命名空间无效
-}
-
-# MCP 标准错误码扩展（语雀相关）
-MCP_ERROR_CODES = {
-    # JSON-RPC 2.0 标准错误码
-    -32700: "Parse error",              # JSON 解析失败
-    -32600: "Invalid Request",          # 请求格式错误
-    -32601: "Method not found",         # 方法不存在
-    -32602: "Invalid params",           # 参数错误
-    -32603: "Internal error",           # 内部错误
-    
-    # 自定义扩展错误码（语雀相关）
-    -32001: "Authentication failed",    # 认证失败
-    -32002: "Permission denied",        # 权限不足
-    -32003: "Resource not found",       # 资源不存在
-    -32004: "Preview only",             # 仅预览权限
-    -32005: "Rate limit exceeded",      # 限流
-    -32006: "Upstream service error",   # 上游服务错误
-    -32007: "Content truncated",        # 内容被截断
-    -32008: "Namespace not found",      # 命名空间不存在
-}
 
 def get_yuque_token():
     """
     获取语雀 Token，优先级：
     1. HTTP Header: X-Yuque-Token
     2. 环境变量: YUQUE_TOKEN
+    3. 配置文件: yuque-config.env
     如果都没有，抛出异常
     """
     # 优先从 HTTP Header 读取
@@ -77,278 +34,20 @@ def get_yuque_token():
     if not token:
         token = os.getenv('YUQUE_TOKEN')
     
+    # 如果没有环境变量，从配置文件读取
+    if not token:
+        token = CONFIG.get('YUQUE_TOKEN')
+    
     # 如果都没有，返回错误
     if not token:
         raise ValueError(
             "缺少语雀 Token 配置。请通过以下方式之一提供：\n"
             "1. HTTP Header: X-Yuque-Token\n"
-            "2. 环境变量: YUQUE_TOKEN"
+            "2. 环境变量: YUQUE_TOKEN\n"
+            "3. 配置文件: yuque-config.env"
         )
     
     return token
-
-class YuqueMCPClient:
-    """语雀 API 客户端封装"""
-    
-    def __init__(self, token: str):
-        self.token = token
-        self.base_url = YUQUE_BASE_URL
-        self.session = requests.Session()
-        self.session.headers.update({
-            'X-Auth-Token': self.token,
-            'Content-Type': 'application/json',
-            'User-Agent': 'Yuque-MCP-Server/2.0'
-        })
-    
-    def _request(self, method: str, endpoint: str, **kwargs) -> Dict[str, Any]:
-        """发送请求到语雀 API，包含详细日志"""
-        url = f"{self.base_url}{endpoint}"
-        
-        logger.debug(f"[YuqueAPI] 请求: {method} {url}")
-        if kwargs.get('json'):
-            logger.debug(f"[YuqueAPI] 请求体: {kwargs['json']}")
-        elif kwargs.get('params'):
-            logger.debug(f"[YuqueAPI] 请求参数: {kwargs['params']}")
-        
-        try:
-            response = self.session.request(method, url, **kwargs)
-            
-            logger.debug(f"[YuqueAPI] 响应状态: {response.status_code}")
-            
-            response.raise_for_status()
-            result = response.json()
-            
-            # 记录响应大小
-            response_size = len(str(result))
-            logger.debug(f"[YuqueAPI] 响应大小: {response_size} 字符")
-            
-            return result
-        except requests.exceptions.HTTPError as e:
-            logger.error(f"[YuqueAPI] HTTP错误: {e.response.status_code}")
-            logger.error(f"[YuqueAPI] 错误详情: {e.response.text[:200]}")
-            raise
-        except requests.exceptions.RequestException as e:
-            logger.error(f"[YuqueAPI] 请求异常: {type(e).__name__} - {str(e)}")
-            raise
-    
-    def get_user_info(self) -> Dict[str, Any]:
-        """获取当前用户信息"""
-        return self._request('GET', '/user')
-    
-    def list_repos(self) -> Dict[str, Any]:
-        """列出用户的知识库"""
-        user_info = self.get_user_info()
-        login = user_info["data"]["login"]
-        return self._request('GET', f'/users/{login}/repos')
-    
-    def get_repo(self, namespace: str) -> Dict[str, Any]:
-        """获取知识库详情"""
-        return self._request('GET', f'/repos/{namespace}')
-    
-    def list_docs(self, namespace: str) -> Dict[str, Any]:
-        """列出知识库中的文档"""
-        return self._request('GET', f'/repos/{namespace}/docs')
-    
-    def get_doc(self, namespace: str, slug: str, raw: bool = False) -> Dict[str, Any]:
-        """获取文档内容
-        
-        Args:
-            namespace: 知识库命名空间
-            slug: 文档标识
-            raw: 是否获取原始 Markdown（完整内容），默认 False
-        """
-        endpoint = f'/repos/{namespace}/docs/{slug}'
-        if raw:
-            endpoint += '?raw=1'  # 尝试获取原始内容
-        return self._request('GET', endpoint)
-    
-    def create_doc(self, namespace: str, title: str, content: str, format: str = "markdown") -> Dict[str, Any]:
-        """创建文档"""
-        data = {
-            "title": title,
-            "format": format,
-            "body": content
-        }
-        return self._request('POST', f'/repos/{namespace}/docs', json=data)
-    
-    def update_doc(self, namespace: str, doc_id: int, title: str = None, content: str = None) -> Dict[str, Any]:
-        """更新文档"""
-        data = {}
-        if title:
-            data["title"] = title
-        if content:
-            data["body"] = content
-        
-        return self._request('PUT', f'/repos/{namespace}/docs/{doc_id}', json=data)
-    
-    def delete_doc(self, namespace: str, doc_id: int) -> Dict[str, Any]:
-        """删除文档"""
-        return self._request('DELETE', f'/repos/{namespace}/docs/{doc_id}')
-    
-    def search(self, query: str, type: str = "doc") -> Dict[str, Any]:
-        """搜索文档或知识库"""
-        return self._request('GET', f'/search?q={query}&type={type}')
-    
-    def get_doc_by_id(self, doc_id: int) -> Dict[str, Any]:
-        """通过文档ID获取文档内容
-        
-        注意：语雀API不支持直接通过文档ID获取文档。
-        此方法会尝试通过搜索找到文档的namespace和slug，然后获取完整内容。
-        如果搜索失败，会返回错误提示，建议用户使用 get_doc(namespace, slug) 方式。
-        
-        Args:
-            doc_id: 文档ID
-            
-        Returns:
-            文档内容，如果找不到则返回错误信息
-        """
-        # 语雀API不支持直接通过文档ID获取文档
-        # 需要通过搜索或其他方式找到文档的namespace和slug
-        # 由于搜索API无法精确匹配文档ID，这里返回错误提示
-        raise ValueError(
-            f"语雀API不支持直接通过文档ID获取文档。\n"
-            f"请使用以下方式之一：\n"
-            f"1. 使用 get_doc(namespace, slug) 工具，从搜索结果中获取 namespace 和 slug\n"
-            f"2. 使用 list_docs(namespace) 工具列出知识库中的文档，找到对应的 slug\n"
-            f"3. 如果文档ID是 {doc_id}，请先通过搜索找到该文档，然后使用返回的 namespace 和 slug"
-        )
-    
-    def list_groups(self) -> Dict[str, Any]:
-        """列出用户的团队"""
-        user_info = self.get_user_info()
-        login = user_info["data"]["login"]
-        return self._request('GET', f'/users/{login}/groups')
-    
-    def list_user_repos(self, login: str) -> Dict[str, Any]:
-        """列出指定用户的知识库"""
-        return self._request('GET', f'/users/{login}/repos')
-    
-    def list_group_repos(self, login: str) -> Dict[str, Any]:
-        """列出指定团队的知识库"""
-        return self._request('GET', f'/groups/{login}/repos')
-    
-    def create_repo(
-        self,
-        owner_login: str,
-        name: str,
-        slug: str = None,
-        description: str = None,
-        public: int = 0,
-        owner_type: str = "user"
-    ) -> Dict[str, Any]:
-        """创建知识库，可指定 owner_type=user/group"""
-        data = {
-            "name": name,
-            "public": public
-        }
-        if slug:
-            data["slug"] = slug
-        if description:
-            data["description"] = description
-        
-        if owner_type == "group":
-            endpoint = f'/groups/{owner_login}/repos'
-        else:
-            endpoint = f'/users/{owner_login}/repos'
-        return self._request('POST', endpoint, json=data)
-    
-    def _build_repo_path(self, repo_id: int = None, namespace: str = None) -> str:
-        if repo_id is not None:
-            return f'/repos/{repo_id}'
-        if namespace:
-            if '/' not in namespace:
-                raise ValueError("namespace 必须形如 owner/slug")
-            owner, slug = namespace.split('/', 1)
-            return f'/repos/{owner}/{slug}'
-        raise ValueError("必须提供 repo_id 或 namespace")
-    
-    def update_repo(
-        self,
-        repo_id: int = None,
-        namespace: str = None,
-        name: str = None,
-        slug: str = None,
-        description: str = None,
-        public: int = None,
-        toc: str = None
-    ) -> Dict[str, Any]:
-        """更新知识库"""
-        data = {}
-        if name:
-            data["name"] = name
-        if slug:
-            data["slug"] = slug
-        if description:
-            data["description"] = description
-        if public is not None:
-            data["public"] = public
-        if toc is not None:
-            data["toc"] = toc
-        path = self._build_repo_path(repo_id, namespace)
-        return self._request('PUT', path, json=data)
-    
-    def delete_repo(self, repo_id: int = None, namespace: str = None) -> Dict[str, Any]:
-        """删除知识库"""
-        path = self._build_repo_path(repo_id, namespace)
-        return self._request('DELETE', path)
-    
-    def get_user(self, login: str) -> Dict[str, Any]:
-        """获取指定用户信息"""
-        return self._request('GET', f'/users/{login}')
-    
-    def get_group(self, group_id: int) -> Dict[str, Any]:
-        """获取团队信息"""
-        return self._request('GET', f'/groups/{group_id}')
-    
-    def list_group_users(self, group_id: int) -> Dict[str, Any]:
-        """列出团队成员"""
-        return self._request('GET', f'/groups/{group_id}/users')
-    
-    def update_group_member(self, group_login: str, user_identity: str, role: int) -> Dict[str, Any]:
-        """变更团队成员角色"""
-        return self._request(
-            'PUT',
-            f'/groups/{group_login}/users/{user_identity}',
-            json={"role": role}
-        )
-    
-    def remove_group_member(self, group_login: str, user_identity: str) -> Dict[str, Any]:
-        """删除团队成员"""
-        return self._request('DELETE', f'/groups/{group_login}/users/{user_identity}')
-    
-    def get_group_statistics(self, login: str) -> Dict[str, Any]:
-        """团队汇总统计"""
-        return self._request('GET', f'/groups/{login}/statistics')
-    
-    def get_group_member_statistics(self, login: str, **params) -> Dict[str, Any]:
-        """团队成员统计"""
-        return self._request('GET', f'/groups/{login}/statistics/members', params=params)
-    
-    def get_group_book_statistics(self, login: str, **params) -> Dict[str, Any]:
-        """团队知识库统计"""
-        return self._request('GET', f'/groups/{login}/statistics/books', params=params)
-    
-    def get_group_doc_statistics(self, login: str, **params) -> Dict[str, Any]:
-        """团队文档统计"""
-        return self._request('GET', f'/groups/{login}/statistics/docs', params=params)
-    
-    def get_repo_toc(self, repo_id: int = None, namespace: str = None) -> Dict[str, Any]:
-        """获取知识库目录"""
-        path = self._build_repo_path(repo_id, namespace)
-        return self._request('GET', f'{path}/toc')
-    
-    def update_repo_toc(self, repo_id: int = None, namespace: str = None, toc_markdown: str = "") -> Dict[str, Any]:
-        """更新知识库目录（整体替换）"""
-        path = self._build_repo_path(repo_id, namespace)
-        return self._request('PUT', path, json={"toc": toc_markdown})
-    
-    def list_doc_versions(self, doc_id: int) -> Dict[str, Any]:
-        """列出文档版本（最新100条）"""
-        return self._request('GET', '/doc_versions', params={"doc_id": doc_id})
-    
-    def get_doc_version(self, version_id: int) -> Dict[str, Any]:
-        """获取指定文档版本详情"""
-        return self._request('GET', f'/doc_versions/{version_id}')
 
 
 @app.after_request
@@ -439,13 +138,14 @@ def handle_mcp():
             headers=headers
         )
 
+
 def handle_initialize(data):
     """处理初始化请求"""
     response = {
         "jsonrpc": "2.0",
         "id": data.get("id"),
         "result": {
-            "protocolVersion": MCP_PROTOCOL_VERSION,
+            "protocolVersion": "2024-11-05",
             "capabilities": {
                 "tools": {},
                 "logs": {},
@@ -459,6 +159,7 @@ def handle_initialize(data):
         }
     }
     return jsonify(response)
+
 
 def handle_tools_list(data):
     """返回可用的工具列表"""
@@ -829,6 +530,7 @@ def handle_tools_list(data):
         "id": data.get("id"),
         "result": {"tools": tools}
     })
+
 
 def handle_tools_call(data):
     """处理工具调用请求"""
@@ -1336,6 +1038,7 @@ def handle_tools_call(data):
             "error": {"code": -32000, "message": f"工具执行失败: {str(e)}"}
         })
 
+
 def handle_ping(data):
     """处理 ping 请求"""
     return jsonify({
@@ -1344,414 +1047,6 @@ def handle_ping(data):
         "result": {}
     })
 
-# 格式化函数
-def format_user_info(user_data: Dict) -> str:
-    """格式化用户信息"""
-    user = user_data.get("data", {})
-    return f"""👤 语雀用户信息
-姓名: {user.get('name', '未知')}
-登录名: {user.get('login', '未知')}
-用户ID: {user.get('id', '未知')}
-知识库数量: {user.get('books_count', 0)}
-关注: {user.get('following_count', 0)} | 粉丝: {user.get('followers_count', 0)}
-注册时间: {user.get('created_at', '未知')}"""
-
-def format_repos_list(repos_data: Dict) -> str:
-    """格式化知识库列表"""
-    repos = repos_data.get("data", [])
-    if not repos:
-        return "暂无知识库"
-    
-    # 按文档数量排序
-    repos.sort(key=lambda x: x.get('items_count', 0), reverse=True)
-    
-    result = ["📚 您的语雀知识库列表 (按文档数量排序):"]
-    for repo in repos:
-        result.append(f"📖 {repo.get('name', '未知')}")
-        result.append(f"  命名空间: {repo.get('namespace', '未知')}")
-        result.append(f"  文档数: {repo.get('items_count', 0)} | 更新: {repo.get('updated_at', '未知')[:10]}")
-        result.append("")
-    
-    return "\n".join(result)
-
-def format_repo_info(repo_data: Dict) -> str:
-    """格式化知识库信息"""
-    repo = repo_data.get("data", {})
-    return f"""知识库详情：
-📖 名称: {repo.get('name', '未知')}
-🔗 命名空间: {repo.get('namespace', '未知')}
-📄 文档数量: {repo.get('items_count', 0)}
-👀 关注数: {repo.get('watches_count', 0)}
-❤️ 点赞数: {repo.get('likes_count', 0)}
-📝 描述: {repo.get('description', '暂无描述')}
-🕐 创建时间: {repo.get('created_at', '未知')}
-✏️ 最后更新: {repo.get('updated_at', '未知')}"""
-
-def format_docs_list(docs_data: Dict, namespace: str) -> str:
-    """格式化文档列表"""
-    docs = docs_data.get("data", [])
-    if not docs:
-        return f"知识库 '{namespace}' 暂无文档"
-    
-    result = [f"📄 知识库 '{namespace}' 中的文档:"]
-    for i, doc in enumerate(docs, 1):
-        result.append(f"{i}. {doc.get('title', '未知标题')}")
-        result.append(f"   文档ID: {doc.get('id', '未知')}")
-        result.append(f"   最后更新: {doc.get('updated_at', '未知')[:10]}")
-        result.append("")
-    
-    return "\n".join(result)
-
-def format_doc_content(doc_data: Dict, repo_info: Dict = None, namespace: str = None, slug: str = None, include_full: bool = True) -> str:
-    """格式化文档内容，支持完整内容显示和权限检测，包含所有相关信息"""
-    doc = doc_data.get("data", {})
-    body = doc.get('body', '')
-    body_length = len(body) if body else 0
-    
-    # 检测内容是否完整（可能是预览内容）
-    # 判断标准：内容长度小于500字符，或末尾包含省略号
-    is_preview = False
-    if body:
-        is_preview = body_length < 500 or (body_length >= 500 and '...' in body[-50:])
-    
-    content_status = "⚠️ 仅预览内容" if is_preview else "✅ 完整内容"
-    
-    # 构建完整的文档信息
-    result = f"""═══════════════════════════════════════
-📄 文档详细信息
-═══════════════════════════════════════
-
-【基本信息】
-📖 标题: {doc.get('title', '未知')}
-🆔 文档ID: {doc.get('id', '未知')}
-📝 格式: {doc.get('format', '未知')}
-📅 创建时间: {doc.get('created_at', '未知')}
-✏️ 更新时间: {doc.get('updated_at', '未知')}
-👤 创建者: {doc.get('creator', {}).get('name', '未知') if doc.get('creator') else '未知'}
-
-【知识库归属】
-"""
-    
-    # 添加知识库信息
-    if repo_info and repo_info.get("data"):
-        repo = repo_info["data"]
-        result += f"""📚 知识库名称: {repo.get('name', '未知')}
-🔗 命名空间: {repo.get('namespace', namespace or '未知')}
-📊 知识库类型: {repo.get('type', '未知')}
-👥 所有者: {repo.get('user', {}).get('name', '未知') if repo.get('user') else '未知'}
-🔒 可见性: {['私密', '团队可见', '公开'][repo.get('public', 0)] if repo.get('public') is not None else '未知'}
-📈 文档数量: {repo.get('items_count', 0)}
-⭐ 关注数: {repo.get('followers_count', 0)}
-"""
-    else:
-        result += f"""📚 知识库命名空间: {namespace or '未知'}
-🔗 文档路径: {slug or '未知'}
-⚠️ 注意: 无法获取知识库详细信息（可能权限不足）
-"""
-    
-    # 添加文档路径信息
-    if namespace and slug:
-        doc_url = f"https://www.yuque.com/{namespace}/{slug}"
-        result += f"""
-【访问信息】
-🔗 完整路径: {namespace}/{slug}
-🌐 访问链接: {doc_url}
-💡 使用方法: get_doc(namespace="{namespace}", slug="{slug}")
-"""
-    
-    result += f"""
-【内容信息】
-📊 内容状态: {content_status}
-📏 内容长度: {body_length} 字符
-"""
-    
-    # 添加文档统计信息
-    if doc.get('read_count') is not None:
-        result += f"👁️ 阅读数: {doc.get('read_count', 0)}\n"
-    if doc.get('like_count') is not None:
-        result += f"👍 点赞数: {doc.get('like_count', 0)}\n"
-    if doc.get('comment_count') is not None:
-        result += f"💬 评论数: {doc.get('comment_count', 0)}\n"
-    
-    result += "\n"
-    
-    if include_full and body:
-        if is_preview:
-            # 显示预览内容并给出提示
-            preview_text = body[:500] if body_length > 500 else body
-            result += f"内容预览:\n{preview_text}"
-            if body_length > 500:
-                result += "...\n\n"
-            result += "\n⚠️ 提示：这是预览内容。如需完整内容，请：\n"
-            result += "1. 检查文档的可见性设置（是否私有）\n"
-            result += "2. 确认 Token 是否有完整访问权限\n"
-            result += "3. 尝试使用 get_doc 工具并设置 raw=true 参数"
-        else:
-            # 显示完整内容
-            result += f"完整内容:\n{body}"
-    else:
-        # 仅显示预览
-        preview_text = body[:500] if body_length > 500 else body
-        result += f"内容预览:\n{preview_text}"
-        if body_length > 500:
-            result += "..."
-    
-    return result
-
-def format_created_doc(doc_data: Dict, namespace: str) -> str:
-    """格式化创建的文档信息"""
-    doc = doc_data.get("data", {})
-    doc_url = f"https://www.yuque.com/{namespace}/{doc.get('slug', '')}"
-    return f"""✅ 文档创建成功！
-📖 标题: {doc.get('title', '未知')}
-🆔 文档ID: {doc.get('id', '未知')}
-🔗 访问链接: {doc_url}
-📅 创建时间: {doc.get('created_at', '未知')}"""
-
-def format_repo_created(repo_data: Dict, owner_login: str) -> str:
-    repo = repo_data.get("data", {})
-    namespace = repo.get("namespace", "未知")
-    visibility = {0: "私密", 1: "团队可见", 2: "公开"}.get(repo.get("public", 0), "未知")
-    return f"""✅ 知识库创建成功！
-📚 名称: {repo.get('name', '未知')}
-👤 所属: {owner_login}
-🔗 命名空间: {namespace}
-🌐 可见性: {visibility}
-📅 创建时间: {repo.get('created_at', '未知')}"""
-
-
-def format_doc_versions(versions_data: Dict, doc_id: int) -> str:
-    versions = versions_data.get("data", [])
-    if not versions:
-        return f"文档 {doc_id} 暂无版本历史。"
-    
-    lines = [f"📜 文档 {doc_id} 版本历史（最多 10 条）:"]
-    for version in versions[:10]:
-        creator = version.get("creator", {}).get("name") if isinstance(version.get("creator"), dict) else version.get("creator")
-        lines.append(
-            f"- 版本 {version.get('version', version.get('id', '未知'))} · "
-            f"{version.get('title', '未命名')} · "
-            f"{creator or '匿名'} @ {version.get('created_at', '未知')}"
-        )
-    if len(versions) > 10:
-        lines.append("... 其余版本请在语雀查看。")
-    return "\n".join(lines)
-
-
-def format_doc_version_detail(version_data: Dict) -> str:
-    version = version_data.get("data", {})
-    creator = version.get("creator", {})
-    return f"""📘 文档版本详情
-版本号: {version.get('version', '未知')}
-标题: {version.get('title', '未命名')}
-作者: {creator.get('name') or creator.get('login', '未知')}
-创建时间: {version.get('created_at', '未知')}
-
-变更说明:
-{version.get('description', '无')}
-"""
-
-
-def format_search_results(search_data: Dict, query: str) -> str:
-    """格式化搜索结果，包含完整路径信息"""
-    results = search_data.get("data", [])
-    if not results:
-        return f"未找到与 '{query}' 相关的文档"
-    
-    result = [f"🔍 搜索 '{query}' 的结果 (前10个):"]
-    for item in results[:10]:
-        # 语雀搜索API返回的数据结构：
-        # - 顶层有 id, title, summary, url
-        # - target 字段包含完整的文档信息（包括 book 和 slug）
-        # - target.book 包含知识库信息（包括 namespace）
-        target = item.get('target', {})
-        book = target.get('book', {}) if target else item.get('book', {})
-        namespace = book.get('namespace', '未知') if book else '未知'
-        slug = target.get('slug', '未知') if target else item.get('slug', '未知')
-        doc_id = item.get('id', '未知')
-        
-        # 构建完整路径
-        if namespace != '未知' and slug != '未知':
-            full_path = f"{namespace}/{slug}"
-        else:
-            full_path = slug if slug != '未知' else '未知'
-        
-        result.append(f"📄 {item.get('title', '未知')}")
-        result.append(f"   🆔 文档ID: {doc_id}")
-        
-        # 显示知识库信息
-        if namespace != '未知':
-            result.append(f"   📚 知识库: {book.get('name', '未知')}")
-            result.append(f"   🔗 命名空间: {namespace}")
-        else:
-            result.append(f"   ⚠️ 知识库信息: 未知（可能不在您的知识库中）")
-        
-        # 显示完整路径和使用方法
-        if namespace != '未知' and slug != '未知':
-            result.append(f"   🔗 完整路径: {full_path}")
-            result.append(f"   💡 使用方法: get_doc(namespace=\"{namespace}\", slug=\"{slug}\")")
-        elif namespace != '未知':
-            result.append(f"   ⚠️ 文档路径: 未知（请使用 list_docs 工具查找）")
-        else:
-            result.append(f"   ⚠️ 无法获取完整路径（文档可能不在您的知识库中）")
-            result.append(f"   💡 建议: 在语雀中打开文档，从URL中获取 namespace 和 slug")
-        
-        # 显示摘要
-        summary = item.get('summary', '')
-        if summary:
-            result.append(f"   📝 摘要: {summary[:100]}...")
-        
-        # 显示其他元数据
-        if item.get('read_count') is not None:
-            result.append(f"   👁️ 阅读数: {item.get('read_count', 0)}")
-        if item.get('like_count') is not None:
-            result.append(f"   👍 点赞数: {item.get('like_count', 0)}")
-        
-        result.append("")
-    
-    return "\n".join(result)
-
-def format_groups_list(groups_data: Dict) -> str:
-    """格式化团队列表"""
-    groups = groups_data.get("data", [])
-    if not groups:
-        return "您尚未加入任何团队"
-    
-    result = ["👥 我的团队列表:"]
-    for group in groups:
-        result.append(f"- {group.get('name', '未知')} (ID: {group.get('id', '未知')})")
-        result.append(f"  描述: {group.get('description', '暂无描述')}")
-        result.append(f"  成员数: {group.get('members_count', 0)}")
-    
-    return "\n".join(result)
-
-
-def format_group_info(group_data: Dict) -> str:
-    group = group_data.get("data", {})
-    return f"""👥 团队信息
-名称: {group.get('name', '未知')}
-ID: {group.get('id', '未知')}
-描述: {group.get('description', '暂无描述')}
-成员数: {group.get('members_count', 0)}
-创建时间: {group.get('created_at', '未知')}
-更新: {group.get('updated_at', '未知')}"""
-
-
-def format_group_users(users_data: Dict, group_id: int) -> str:
-    users = users_data.get("data", [])
-    if not users:
-        return f"团队 {group_id} 暂无成员信息。"
-    
-    result = [f"👤 团队 {group_id} 的成员:"]
-    for user in users:
-        result.append(f"- {user.get('name', '未知')} ({user.get('login', '未知')}) 角色: {user.get('role', 'member')}")
-    return "\n".join(result)
-
-
-def format_repo_toc(toc_data: Dict) -> str:
-    data = toc_data.get("data")
-    if not data:
-        return "目录为空或未配置。"
-    
-    toc_text = ""
-    if isinstance(data, dict):
-        toc_text = data.get("toc_yml") or data.get("toc_yaml") or data.get("toc") or ""
-    elif isinstance(data, str):
-        toc_text = data
-    
-    if not toc_text:
-        return "目录内容为空。"
-    
-    preview = "\n".join(toc_text.splitlines()[:40])
-    if len(toc_text.splitlines()) > 40:
-        preview += "\n..."
-    return f"📚 当前目录（Markdown）:\n{preview}"
-
-
-def format_group_statistics(stats_data: Dict) -> str:
-    stats = stats_data.get("data", {})
-    if not stats:
-        return "暂无团队统计数据。"
-    lines = [
-        "📊 团队汇总统计",
-        f"成员数: {stats.get('member_count', '未知')}",
-        f"知识库数: {stats.get('book_count', '未知')} (公开 {stats.get('public_book_count', '未知')})",
-        f"文档数: {stats.get('doc_count', '未知')}",
-        f"近30天阅读: {stats.get('read_count_30', '未知')}, 写作: {stats.get('write_count_30', '未知')}",
-        f"累计点赞: {stats.get('like_count', '未知')} · 评论: {stats.get('comment_count', '未知')}",
-        f"数据占用: {stats.get('data_usage', '未知')}"
-    ]
-    return "\n".join(lines)
-
-
-def format_group_member_stats(stats_data: Dict) -> str:
-    members = stats_data.get("data", {}).get("members")
-    if not members:
-        return "未查询到成员统计信息。"
-    
-    if isinstance(members, dict):
-        members = members.values()
-    
-    lines = ["👥 成员活跃度（前 10 条）:"]
-    for item in list(members)[:10]:
-        user = item.get("user", {})
-        lines.append(
-            f"- {user.get('name', '未知')} · 写作 {item.get('write_count', 0)} 次 · "
-            f"阅读 {item.get('read_count', 0)} 次 · 点赞 {item.get('like_count', 0)}"
-        )
-    total = stats_data.get("data", {}).get("total")
-    if total:
-        lines.append(f"共 {total} 人")
-    return "\n".join(lines)
-
-
-def format_group_book_stats(stats_data: Dict) -> str:
-    books = stats_data.get("data", {}).get("books") or stats_data.get("data", [])
-    if isinstance(books, dict):
-        books = books.values()
-    books = list(books)
-    if not books:
-        return "未查询到知识库统计信息。"
-    
-    lines = ["📚 知识库统计（前 10 条）:"]
-    for book in books[:10]:
-        lines.append(
-            f"- {book.get('name', '未命名')} · 阅读 {book.get('read_count', 0)} · "
-            f"写作 {book.get('write_count', 0)} · 点赞 {book.get('like_count', 0)}"
-        )
-    total = stats_data.get("data", {}).get("total")
-    if total:
-        lines.append(f"共 {total} 个知识库")
-    return "\n".join(lines)
-
-
-def format_group_doc_stats(stats_data: Dict) -> str:
-    docs = stats_data.get("data", {}).get("docs") or stats_data.get("data", {}).get("documents") or stats_data.get("data", [])
-    if isinstance(docs, dict):
-        docs = docs.values()
-    docs = list(docs)
-    if not docs:
-        return "未查询到文档统计信息。"
-    
-    lines = ["📄 文档统计（前 10 条）:"]
-    for doc in docs[:10]:
-        lines.append(
-            f"- {doc.get('title', '未命名')} · 阅读 {doc.get('read_count', 0)} · "
-            f"评论 {doc.get('comment_count', 0)} · 点赞 {doc.get('like_count', 0)}"
-        )
-    total = stats_data.get("data", {}).get("total")
-    if total:
-        lines.append(f"共 {total} 篇文档统计数据")
-    return "\n".join(lines)
-
-    users = users_data.get("data", [])
-    if not users:
-        return f"团队 {group_id} 暂无成员信息。"
-    
-    result = [f"👤 团队 {group_id} 的成员:"]
-    for user in users:
-        result.append(f"- {user.get('name', '未知')} ({user.get('login', '未知')}) 角色: {user.get('role', 'member')}")
-    return "\n".join(result)
 
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -1762,11 +1057,20 @@ def health_check():
         yuque_client = YuqueMCPClient(token)
         user_info = yuque_client.get_user_info()
         user_login = user_info.get("data", {}).get("login", "unknown")
+        
+        # 确定 Token 来源
+        if request.headers.get('X-Yuque-Token'):
+            token_source = 'header'
+        elif os.getenv('YUQUE_TOKEN'):
+            token_source = 'environment'
+        else:
+            token_source = 'config_file'
+            
         return jsonify({
             'status': 'healthy', 
             'message': '语雀MCP服务器运行正常',
             'user': user_login,
-            'token_source': 'header' if request.headers.get('X-Yuque-Token') else 'environment'
+            'token_source': token_source
         })
     except ValueError as e:
         # Token 配置缺失
@@ -1781,6 +1085,7 @@ def health_check():
             'error': str(e)
         }), 500
 
+
 @app.route('/test', methods=['GET'])
 def test_endpoint():
     """测试端点"""
@@ -1790,12 +1095,12 @@ def test_endpoint():
         'status': 'running'
     })
 
+
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 3000))
-    print(f"🚀 语雀 MCP 服务器启动在 http://localhost:{port}")
-    print(f"📊 健康检查: http://localhost:{port}/health")
-    print(f"🔗 MCP 端点: http://localhost:{port}/mcp")
-    print(f"🧪 测试端点: http://localhost:{port}/test")
+    print(f"🚀 语雀 MCP 服务器启动在 http://localhost:{PORT}")
+    print(f"📊 健康检查: http://localhost:{PORT}/health")
+    print(f"🔗 MCP 端点: http://localhost:{PORT}/mcp")
+    print(f"🧪 测试端点: http://localhost:{PORT}/test")
     print(f"📚 支持功能: 用户信息、知识库管理、文档CRUD、搜索、团队管理")
     
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=PORT, debug=False)

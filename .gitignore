@@ -29,3 +29,6 @@ __pycache__/
 # macOS
 .DS_Store
 
+# Trae IDE
+.trae/
+

@@ -17,7 +17,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # 复制应用文件
-COPY yuque-proxy.js .
+COPY yuque-proxy.py .
 COPY yuque-config.env.example yuque-config.env.example
 
 # 创建非 root 用户
@@ -32,5 +32,5 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
     CMD curl -f http://localhost:3000/health || exit 1
 
 # 启动命令
-CMD ["python", "yuque-proxy.js"]
+CMD ["python", "yuque-proxy.py"]
 

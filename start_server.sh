@@ -2,11 +2,21 @@
 
 # 语雀 MCP 代理服务器启动脚本
 # 功能：检测服务是否运行，如果没有则自动启动
+# 支持三种启动模式：异步版本、同步版本和自动启动服务
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SCRIPT_NAME="yuque-proxy.js"
 CONFIG_FILE="$SCRIPT_DIR/yuque-config.env"
 PORT=${PORT:-3000}
+
+# 脚本名称配置
+ASYNC_SCRIPT="app_async.py"
+SYNC_SCRIPT="app.py"
+AUTO_START_SCRIPT="auto_start_server.py"
+
+# 默认使用异步版本
+SCRIPT_NAME="$ASYNC_SCRIPT"
+
+# PID 和日志文件配置
 PID_FILE="/tmp/yuque-proxy.pid"
 LOG_FILE="/tmp/yuque-proxy.log"
 
@@ -153,10 +163,52 @@ view_logs() {
     fi
 }
 
+# 启动自动启动服务
+start_auto_server() {
+    echo "🚀 正在启动自动启动服务..."
+    cd "$SCRIPT_DIR"
+    
+    # 检查 Token 配置
+    if [ -z "$YUQUE_TOKEN" ]; then
+        echo "⚠️  警告: 未设置 YUQUE_TOKEN 环境变量"
+        echo "   提示: 可以通过以下方式配置："
+        echo "   1. 创建配置文件: $CONFIG_FILE"
+        echo "   2. 设置环境变量: export YUQUE_TOKEN=your-token"
+        echo "   3. 在 Chatbox 的 HTTP Header 中配置: X-Yuque-Token"
+        echo ""
+        echo "   继续启动服务（Token 可通过 HTTP Header 提供）..."
+    fi
+    
+    # 启动自动启动服务（前台运行，便于查看日志）
+    python3 "$AUTO_START_SCRIPT"
+}
+
 # 主函数
 main() {
     case "${1:-start}" in
         start)
+            # 支持模式参数：async, sync, auto
+            mode="${2:-async}"
+            
+            case "$mode" in
+                async)
+                    SCRIPT_NAME="$ASYNC_SCRIPT"
+                    echo "🔄 选择模式: 异步版本"
+                    ;;
+                sync)
+                    SCRIPT_NAME="$SYNC_SCRIPT"
+                    echo "🔄 选择模式: 同步版本"
+                    ;;
+                auto)
+                    start_auto_server
+                    return
+                    ;;
+                *)
+                    echo "⚠️  无效模式: $mode，默认使用异步版本"
+                    SCRIPT_NAME="$ASYNC_SCRIPT"
+                    ;;
+            esac
+            
             start_server
             ;;
         stop)
@@ -192,14 +244,21 @@ YUQUE_TOKEN=your-token-here
 
 # 服务端口（可选，默认 3000）
 PORT=3000
+
+# Redis 配置（可选，用于缓存）
+# REDIS_URL=redis://localhost:6379/0
 EOF
                 chmod 600 "$CONFIG_FILE"
                 echo "✅ 配置文件已创建"
                 echo "⚠️  请编辑 $CONFIG_FILE 并填入您的 Token"
             fi
             ;;
+        auto)
+            # 快捷命令：启动自动启动服务
+            start_auto_server
+            ;;
         *)
-            echo "用法: $0 {start|stop|restart|status|logs|config}"
+            echo "用法: $0 {start|stop|restart|status|logs|config|auto} [mode]"
             echo ""
             echo "命令说明:"
             echo "  start   - 启动服务（如果未运行）"
@@ -208,6 +267,17 @@ EOF
             echo "  status  - 查看服务状态"
             echo "  logs    - 查看日志（实时）"
             echo "  config  - 创建/查看配置文件"
+            echo "  auto    - 启动自动启动服务"
+            echo ""
+            echo "启动模式:"
+            echo "  async   - 异步版本（推荐，使用 FastAPI）"
+            echo "  sync    - 同步版本（使用 Flask）"
+            echo "  auto    - 自动启动服务（监听请求并自动启动）"
+            echo ""
+            echo "示例:"
+            echo "  $0 start async    # 启动异步版本"
+            echo "  $0 start sync     # 启动同步版本"
+            echo "  $0 auto           # 启动自动启动服务"
             exit 1
             ;;
     esac
