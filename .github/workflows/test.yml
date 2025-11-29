@@ -24,7 +24,14 @@ jobs:
     
     - name: Syntax check
       run: |
-        python3 -m py_compile yuque-proxy.js
+        python3 -m py_compile yuque-proxy.py
+        python3 -m py_compile yuque_client.py
+        python3 -m py_compile cache.py
+        python3 -m py_compile config.py
+        python3 -m py_compile app.py
+        python3 -m py_compile app_async.py
+        python3 -m py_compile async_yuque_client.py
+        python3 -m py_compile auto_start_server.py
     
     - name: Test health endpoint (if server running)
       run: |
