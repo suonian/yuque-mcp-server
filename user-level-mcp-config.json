@@ -1,0 +1,16 @@
+{
+  "mcpServers": {
+    "yuque": {
+      "command": "D:\\Python\\Python313\\python.exe",
+      "args": [
+        "yuque_mcp\\server.py"
+      ],
+      "cwd": "D:\\AI Trae\\server-yuque",
+      "env": {
+        "YUQUE_TOKEN": "w5t3XT8FnrcQTsl6VYEfJd5areDyuPiPoKim31Q3",
+        "PYTHONPATH": "D:\\AI Trae\\server-yuque"
+      },
+      "transport": "stdio"
+    }
+  }
+}

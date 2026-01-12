@@ -1,0 +1,81 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "yuque-mcp-server"
+version = "1.0.0"
+description = "A Model Context Protocol (MCP) server for Yuque (语雀) API"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "suonian", email = "suonian@users.noreply.github.com"}
+]
+maintainers = [
+    {name = "suonian", email = "suonian@users.noreply.github.com"}
+]
+keywords = [
+    "mcp",
+    "model-context-protocol",
+    "yuque",
+    "语雀",
+    "ai",
+    "claude",
+    "api",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.7"
+dependencies = [
+    "fastmcp>=0.1.0",
+    "httpx>=0.24.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "cachetools>=5.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-asyncio>=0.21.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/suonian/yuque-mcp-server"
+Repository = "https://github.com/suonian/yuque-mcp-server"
+Issues = "https://github.com/suonian/yuque-mcp-server/issues"
+Documentation = "https://github.com/suonian/yuque-mcp-server/blob/main/README.md"
+
+[project.scripts]
+yuque-mcp = "yuque_mcp.server:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["yuque_mcp*"]
+
+[tool.black]
+line-length = 100
+target-version = ["py37", "py38", "py39", "py310", "py311", "py312"]
+
+[tool.mypy]
+python_version = "3.7"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false

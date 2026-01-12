@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "yuque": {
+      "command": "python",
+      "args": ["yuque_mcp/server.py"],
+      "cwd": ".",
+      "env": {
+        "PYTHONPATH": "."
+      },
+      "transport": "stdio"
+    }
+  }
+}

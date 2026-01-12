@@ -1,0 +1,12 @@
+{
+  "yuque": {
+    "token": "$YUQUE_TOKEN",
+    "base_url": "https://www.yuque.com/api/v2"
+  },
+  "server": {
+    "transport": "stdio",
+    "port": 3000,
+    "host": "0.0.0.0",
+    "log_level": "CRITICAL"
+  }
+}

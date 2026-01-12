@@ -1,0 +1,5 @@
+fastmcp
+httpx
+pydantic
+python-dotenv
+cachetools>=5.0.0
